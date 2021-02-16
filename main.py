@@ -19,19 +19,59 @@ opera_driver_path = "E:/Python/WebDriver/operadriver.exe"
 class InternetSpeedTwitterBot:
     def __init__(self):
         self.driver = webdriver.Firefox(executable_path=firefox_driver_path)
+        self.result_id = "abc"
+        self.ping = 0
         self.down = 0
         self.up = 0
 
     def get_internet_speed(self):
         self.driver.get("https://www.speedtest.net/")
+        sleep(3)
+        print("Looking for button_consent")
         button_consent = self.driver.find_element_by_id("_evidon-banner-acceptbutton")
         button_consent.click()
-        button_notification_close = self.driver.find_element_by_css_selector("notification-dismiss close-btn")
-        button_notification_close.click()
-        button_start_test = self.driver.find_element_by_css_selector("js-start-test test-mode-multi")
+        print("Looking for button_notification_close")
+        found = False
+        while not found:
+            try:
+                button_notification_close = self.driver.find_element_by_class_name("notification-dismiss")
+                button_notification_close.click()
+                found = True
+            except:
+                sleep(1)
+        print("Looking for button_start_test")
+        button_start_test = self.driver.find_element_by_class_name("js-start-test")
         button_start_test.click()
-
-        pass
+        # Get results
+        # ===========
+        sleep(30)
+        print("Looking for result_id")
+        #   Result ID
+        found = False
+        while not found:
+            try:
+                self.result_id = self.driver.find_element_by_class_name("result-item-id")\
+                    .find_element_by_tag_name("a")
+                # self.result_id.text doesn't print anything
+                #   debug shows that .text does have the appropriate string value!!
+                print("Result ID: ",
+                      self.result_id.text,
+                      self.result_id.get_attribute('href'))
+                found = True
+            except:
+                sleep(1)
+        #   Ping
+        self.ping = self.driver.find_element_by_class_name("result-item-ping")\
+            .find_element_by_class_name("ping-speed")
+        print("Ping: ", self.ping.text, "ms")
+        #   Download
+        self.down = self.driver.find_element_by_class_name("result-item-download")\
+            .find_element_by_class_name("download-speed")
+        print("Download: ", self.down.text, "Mbps")
+        #   Download
+        self.up = self.driver.find_element_by_class_name("result-item-upload")\
+            .find_element_by_class_name("upload-speed")
+        print("Upload: ", self.up.text, "Mbps")
 
     def tweet_at_provider(self):
         pass
